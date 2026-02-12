@@ -1,0 +1,18 @@
+[project]
+name = "healthcare-agent"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "geocoder>=1.38.1",
+    "ipykernel>=7.2.0",
+    "langchain>=1.2.10",
+    "langchain-community>=0.4.1",
+    "langchain-core>=1.2.11",
+    "langchain-groq>=1.1.2",
+    "langgraph>=1.0.8",
+    "mcp-use>=1.6.0",
+    "mysql>=0.0.3",
+    "mysql-connector-python>=9.6.0",
+]
