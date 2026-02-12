@@ -36,14 +36,19 @@ def connect_to_doctor():
         doctors = doctorconnect.find_nearest_doctors(lat, lon)
         
         if doctors:
-            print(f"\nFound {len(doctors)} doctors near you:")
-            for name, distance in doctors:
-                print(f"- {name} ({distance:.2f} km away)")
+            print(f"\nFound {len(doctors)} doctors near you:\n")
+            
+            for name, phone, distance in doctors:
+                print(f"Doctor: {name}")
+                print(f"Phone: {phone}")
+                print(f"Distance: {distance:.2f} km away")
+                print("-" * 40)
         else:
             print("No doctors found in your immediate vicinity.")
             
     except Exception as e:
         print(f"Error connecting to doctor network: {e}")
+
 
 def connect_to_agent(initial_query):
     print("Connecting to AI Medical Agent...")
