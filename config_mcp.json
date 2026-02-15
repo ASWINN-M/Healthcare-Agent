@@ -1,13 +1,8 @@
 {
-  "mcpServers": {
+  "servers": {
     "pubmed": {
-      "command": "python.exe",
-      "args": [
-        "C:\\HealthCare Agent\\PubMed-MCP-Server\\pubmed_server.py"
-      ],
-      "env": {},
-      "disabled": false,
-      "autoApprove": []
+      "command": "python3",
+      "args": ["/Users/santhoshsl/Desktop/Devpost/Healthcare-Agent/PubMed-MCP-Server/pubmed_server.py"]
     }
   }
 }
