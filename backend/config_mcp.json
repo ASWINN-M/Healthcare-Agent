@@ -1,0 +1,11 @@
+{
+  "servers": {
+    "pubmed": {
+      "transport": {
+        "type": "stdio",
+        "command": "python",
+        "args": ["-m", "mcp_use.pubmed"]
+      }
+    }
+  }
+}

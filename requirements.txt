@@ -1,0 +1,11 @@
+ipykernel
+langchain
+langchain_core
+langchain_community
+langchain_groq
+langgraph
+mysql-connector-python
+geocoder
+python-dotenv
+mcp-use
+bcyrpt
