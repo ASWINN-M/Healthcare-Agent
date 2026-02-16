@@ -53,8 +53,33 @@ async def mcp_call(state: GraphState) -> GraphState:
         query = messages[-1].content
     
     response_content = await mcp_agent.run(query)
+    summary_prompt = [SystemMessage(content="""
+    You are a clinical decision support assistant.
+
+    Based on the retrieved medical literature below:
+
+    1. Provide a concise summary.
+    2. Offer clinical interpretation.
+    3. Mention possible causes.
+    4. Suggest next steps (non-diagnostic).
+    5. Include a disclaimer that this is not medical advice.
+    """),
+    HumanMessage(content=f"""
+            User Query:
+            {query}
+            Retrieved Medical Literature:
+            {response_content}
+            Now provide your structured clinical perspective.
+    """)]
+
+    llm_response = model.invoke(summary_prompt)
+    final_output = f"""
+    {response_content}
+
+    {llm_response.content}
+    """
     
-    return {"messages": [AIMessage(content=str(response_content))]}
+    return {"messages": [AIMessage(content=str(final_output))]}
 
 
 graph = StateGraph(GraphState)
@@ -69,9 +94,9 @@ app = graph.compile(checkpointer=checkpointer)
 # Persistent event loop — reused across calls so the checkpointer state survives
 _loop = asyncio.new_event_loop()
 
-def get_response(query: str) -> str:
+def get_response(query: str, user_id: str = "1") -> str:
     """Interface for app.py to get a response from the agent."""
-    config = {"configurable": {"thread_id": "1"}}
+    config = {"configurable": {"thread_id": str(user_id)}}
     input_state = {"messages": [HumanMessage(content=query)]}
     
     try:
