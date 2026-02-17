@@ -9,3 +9,10 @@ geocoder
 python-dotenv
 mcp-use
 bcyrpt
+
+fastapi
+uvicorn
+
+jinja2
+python-multipart
+

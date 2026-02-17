@@ -23,3 +23,35 @@ venv/
 
 # Database files (if any local)
 *.db
+
+
+
+# Python
+venv/
+__pycache__/
+*.pyc
+.env
+
+# Node
+node_modules/
+dist/
+build/
+
+# OS
+.DS_Store
+
+
+# Environments
+venv/
+env/
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+
+# IDE settings
+.vscode/
+
+# Git
+.gitignore

@@ -1,13 +1,295 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <title>AgenticHealthAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; transition: background-color 0.3s ease; }
+
+        /* Staggered Logo - Larger Font Sizes */
+        .logo-container { display: flex; align-items: center; font-weight: 800; letter-spacing: -0.5px; }
+        .logo-main { font-size: 1.8rem; }
+        .logo-sup { font-size: 0.9rem; vertical-align: super; position: relative; top: -6px; margin: 0 2px; }
+
+        /* Responsive Sidebar Grid */
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 320px; gap: 2rem; }
+        @media (max-width: 1024px) { .dashboard-grid { grid-template-columns: 1fr; } }
+
+        /* Segregation Styling */
+        .pubmed-box { border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.08); padding: 1.5rem; border-radius: 1rem; }
+        .ai-box { border-left: 4px solid #3b82f6; background: rgba(59, 130, 246, 0.08); padding: 1.5rem; border-radius: 1rem; }
+        
+        /* Fixed colors for visibility */
+        .dark .text-adaptive { color: #f8fafc !important; }
+        .light .text-adaptive { color: #0f172a !important; }
+
+        /* FORCE ALL TEXT TO WHITE IN DARK MODE */
+        .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark p, .dark span, .dark label, .dark li, .dark textarea, .dark input {
+            color: #ffffff !important;
+        }
+
+        .chat-scroll::-webkit-scrollbar { width: 4px; }
+        .chat-scroll::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
+    </style>
+    <script> tailwind.config = { darkMode: 'class' } </script>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+
+    <nav id="navbar" class="hidden fixed w-full top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-10 py-4 flex justify-between items-center border-b dark:border-slate-800">
+        <div class="logo-container cursor-pointer" onclick="showView('triageView')">
+            <span class="logo-sup text-blue-500 font-black">AGENTIC</span>
+            <span class="logo-main text-adaptive">HEALTH</span>
+            <span class="logo-sup text-blue-500 font-black">AI</span>
+        </div>
+        
+        <div class="flex items-center gap-8">
+            <button onclick="showView('triageView')" class="text-sm font-black text-adaptive hover:text-blue-500 transition tracking-tighter">HOME</button>
+            <button onclick="toggleTheme()" class="text-adaptive hover:scale-110 transition"><i id="themeIcon" class="fa-solid fa-moon"></i></button>
+            <span id="navName" class="font-bold text-adaptive border-l dark:border-slate-700 pl-6"></span>
+            <button onclick="logout()" class="text-xs font-black bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600 shadow-lg shadow-red-500/20">LOGOUT</button>
+        </div>
+    </nav>
+
+    <div id="appContainer" class="pt-28 px-10 max-w-[1600px] mx-auto hidden">
+        <div class="dashboard-grid">
+            
+            <main class="space-y-8">
+                
+                <div id="triageView" class="bg-white dark:bg-slate-900 p-10 rounded-[3rem] shadow-xl border dark:border-slate-800">
+                    <h2 class="text-3xl font-black mb-6 text-adaptive">Symptom Assessment</h2>
+                    <textarea id="symptomText" class="w-full p-8 rounded-3xl border-2 dark:bg-slate-800 dark:border-slate-700 text-adaptive h-56 outline-none focus:border-blue-500 transition-all placeholder-slate-400" placeholder="Type symptoms here..."></textarea>
+                    <button onclick="runTriage()" class="mt-8 bg-blue-600 text-white px-12 py-4 rounded-2xl font-bold hover:bg-blue-700 shadow-xl shadow-blue-500/30">Start Analysis</button>
+
+                    <div id="triageResult" class="hidden mt-10 p-10 rounded-[2.5rem] border-l-[12px]">
+                        <h3 id="riskTitle" class="text-2xl font-black mb-2"></h3>
+                        <p id="riskAdvice" class="text-lg opacity-90 mb-8"></p>
+                        <div id="resultActions" class="flex gap-4"></div>
+                    </div>
+                </div>
+
+                <div id="doctorView" class="hidden space-y-8">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-2xl font-black text-adaptive">Nearby Medical Professionals</h2>
+                        <button onclick="showView('triageView')" class="text-blue-500 font-bold"><i class="fa-solid fa-arrow-left mr-2"></i> HOME</button>
+                    </div>
+                    <div id="doctorGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+                    <div class="p-8 border-2 border-dashed dark:border-slate-800 rounded-[2rem] text-center">
+                        <p class="text-slate-500 font-bold mb-4">Would you like to consult the AI while waiting for a doctor?</p>
+                        <button onclick="showView('chatView')" class="bg-slate-900 dark:bg-white dark:text-slate-900 text-white px-10 py-3 rounded-xl font-bold">Start AI Chat</button>
+                    </div>
+                </div>
+
+                <div id="chatView" class="hidden bg-white dark:bg-slate-900 p-10 rounded-[3rem] shadow-2xl border dark:border-slate-800 h-[850px] flex flex-col">
+                    <div class="flex justify-between items-center mb-6">
+                        <button onclick="showView('triageView')" class="text-slate-400 font-bold hover:text-blue-500"><i class="fa-solid fa-arrow-left mr-2"></i> BACK</button>
+                        <h2 class="text-xl font-black text-adaptive">AgenticHealthAI Specialist</h2>
+                        <div class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30"><i class="fa-solid fa-robot"></i></div>
+                    </div>
+                    <div id="chatMessages" class="flex-1 overflow-y-auto space-y-6 pr-4 chat-scroll"></div>
+                    <div class="mt-8 flex gap-4">
+                        <input id="chatInput" class="flex-1 p-5 rounded-3xl border-2 dark:bg-slate-800 dark:border-slate-700 text-adaptive outline-none focus:border-blue-500" placeholder="Ask a follow-up...">
+                        <button onclick="sendChat()" class="bg-blue-600 text-white px-12 rounded-2xl font-black hover:bg-blue-700 transition">SEND</button>
+                    </div>
+                </div>
+            </main>
+
+            <aside class="space-y-6">
+                <div class="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] shadow-lg border dark:border-slate-800 sticky top-28">
+                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Analysis History
+                    </h3>
+                    <div id="historyList" class="space-y-4 max-h-[600px] overflow-y-auto chat-scroll pr-2">
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <div id="authContainer" class="min-h-screen bg-slate-900 flex items-center justify-center p-6 bg-cover bg-center" style="background-image: linear-gradient(rgba(10, 25, 47, 0.8), rgba(10, 25, 47, 0.8)), url('https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=2070');">
+        <div class="bg-white/10 backdrop-blur-xl p-12 rounded-[3rem] border border-white/20 w-full max-w-md shadow-2xl">
+            <div class="logo-container justify-center mb-10">
+                <span class="logo-sup text-blue-400 font-black">AGENTIC</span>
+                <span class="logo-main text-white">HEALTH</span>
+                <span class="logo-sup text-blue-400 font-black">AI</span>
+            </div>
+
+            <div class="flex bg-white/10 p-1 rounded-2xl mb-8">
+                <button id="tabLogin" onclick="toggleAuth('login')" class="flex-1 py-3 rounded-xl font-bold bg-white/20 text-white">Login</button>
+                <button id="tabSignup" onclick="toggleAuth('signup')" class="flex-1 py-3 rounded-xl font-bold text-white/50">Signup</button>
+            </div>
+
+            <div id="loginForm" class="space-y-4">
+                <input id="lEmail" placeholder="Email" class="w-full p-4 rounded-2xl bg-white/5 border border-white/20 text-white outline-none focus:bg-white/10">
+                <input id="lPass" type="password" placeholder="Password" class="w-full p-4 rounded-2xl bg-white/5 border border-white/20 text-white outline-none focus:bg-white/10">
+                <button onclick="handleLogin()" class="w-full bg-blue-600 text-white p-4 rounded-2xl font-black hover:bg-blue-700 transition shadow-xl shadow-blue-500/40">LOGIN PORTAL</button>
+            </div>
+
+            <div id="signupForm" class="hidden space-y-4">
+                <input id="sName" placeholder="Full Name" class="w-full p-4 rounded-2xl bg-white/5 border border-white/20 text-white outline-none focus:bg-white/10">
+                <input id="sEmail" placeholder="Email" class="w-full p-4 rounded-2xl bg-white/5 border border-white/20 text-white outline-none focus:bg-white/10">
+                <input id="sPass" type="password" placeholder="Password" class="w-full p-4 rounded-2xl bg-white/5 border border-white/20 text-white outline-none focus:bg-white/10">
+                <div class="flex gap-2">
+                    <input id="sBlood" placeholder="Blood" class="w-1/3 p-4 rounded-2xl bg-white/5 border border-white/20 text-white outline-none">
+                    <input id="sAllergies" placeholder="Allergies" class="w-2/3 p-4 rounded-2xl bg-white/5 border border-white/20 text-white outline-none">
+                </div>
+                <button onclick="handleSignup()" class="w-full bg-green-600 text-white p-4 rounded-2xl font-black hover:bg-green-700 transition shadow-xl">REGISTER ACCOUNT</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = "http://127.0.0.1:8000";
+        let user = null;
+
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+        }
+
+        function toggleAuth(mode) {
+            const isLogin = mode === 'login';
+            document.getElementById('loginForm').classList.toggle('hidden', !isLogin);
+            document.getElementById('signupForm').classList.toggle('hidden', isLogin);
+            document.getElementById('tabLogin').className = isLogin ? 'flex-1 py-3 rounded-xl font-bold bg-white/20 text-white' : 'flex-1 py-3 rounded-xl font-bold text-white/50';
+            document.getElementById('tabSignup').className = !isLogin ? 'flex-1 py-3 rounded-xl font-bold bg-white/20 text-white' : 'flex-1 py-3 rounded-xl font-bold text-white/50';
+        }
+
+        async function handleSignup() {
+            const res = await fetch(`${API}/signup`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ 
+                    name: sName.value, 
+                    email: sEmail.value, 
+                    password: sPass.value,
+                    blood_group: sBlood.value,
+                    allergies: sAllergies.value
+                })
+            });
+            if (res.ok) setupSession(await res.json());
+            else alert("Signup Failed");
+        }
+
+        async function handleLogin() {
+            const res = await fetch(`${API}/login`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email: lEmail.value, password: lPass.value })
+            });
+            if (res.ok) setupSession(await res.json());
+            else alert("Login Failed");
+        }
+
+        function setupSession(data) {
+            user = data;
+            authContainer.classList.add('hidden');
+            appContainer.classList.remove('hidden');
+            navbar.classList.remove('hidden');
+            navName.innerText = user.name;
+            loadHistory();
+        }
+
+        async function loadHistory() {
+            const res = await fetch(`${API}/history/${user.id}`);
+            const history = await res.json();
+            historyList.innerHTML = history.map(h => `
+                <div class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border dark:border-slate-800 border-transparent hover:border-blue-500/30 transition-all cursor-default">
+                    <p class="text-[10px] font-black text-blue-500 mb-1">${h.time}</p>
+                    <p class="text-sm italic text-adaptive opacity-80 line-clamp-2">"${h.query}"</p>
+                </div>
+            `).join('');
+        }
+
+        async function runTriage() {
+            const res = await fetch(`${API}/triage`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ user_id: user.id, query: symptomText.value })
+            });
+            const data = await res.json();
+            const isHigh = data.risk_level.includes('high');
+            
+            triageResult.classList.remove('hidden');
+            triageResult.className = `mt-10 p-10 rounded-[2.5rem] border-l-[12px] animate-in fade-in duration-300 ${isHigh ? 'bg-red-50 dark:bg-red-900/10 border-red-500 text-adaptive' : 'bg-blue-50 dark:bg-blue-900/10 border-blue-500 text-adaptive'}`;
+            riskTitle.innerText = data.risk_level.toUpperCase();
+            riskAdvice.innerText = data.advice;
+
+            resultActions.innerHTML = isHigh 
+                ? `<button onclick="loadDoctors()" class="bg-red-600 text-white px-10 py-3 rounded-xl font-bold">CONTACT DOCTOR</button>`
+                : `<button onclick="showView('chatView')" class="bg-blue-600 text-white px-10 py-3 rounded-xl font-bold">ASK AI AGENT</button>
+                   <button onclick="loadDoctors()" class="bg-slate-200 dark:bg-slate-800 text-adaptive px-10 py-3 rounded-xl font-bold">FIND CLINICS</button>`;
+            
+            loadHistory();
+        }
+
+        async function loadDoctors() {
+            showView('doctorView');
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                const res = await fetch(`${API}/doctors?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
+                const doctors = await res.json();
+                doctorGrid.innerHTML = doctors.map(d => `
+                    <div class="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border dark:border-slate-800 shadow-lg hover:border-blue-500/50 transition-all">
+                        <div class="flex justify-between items-start mb-4">
+                            <h4 class="font-black text-xl text-adaptive">${d.name}</h4>
+                            <span class="text-xs font-bold text-blue-500 bg-blue-500/10 px-3 py-1 rounded-full">${d.dist.toFixed(1)} KM</span>
+                        </div>
+                        <p class="text-slate-500 font-bold mb-1">${d.specialty}</p>
+                        <p class="text-blue-600 dark:text-blue-400 font-black text-lg mb-6"><i class="fa-solid fa-phone-flip mr-2"></i> ${d.phone}</p>
+                        <a href="tel:${d.phone}" class="block text-center bg-slate-900 dark:bg-white dark:text-slate-900 text-white py-3 rounded-xl font-black">CONTACT NOW</a>
+                    </div>
+                `).join('');
+            });
+        }
+
+        async function sendChat() {
+            const query = chatInput.value;
+            if(!query) return;
+            chatMessages.innerHTML += `<div class="flex justify-end"><div class="bg-blue-600 text-white p-5 rounded-3xl rounded-tr-none max-w-[80%] shadow-xl font-medium">${query}</div></div>`;
+            chatInput.value = '';
+
+            const res = await fetch(`${API}/chat`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ user_id: user.id, query })
+            });
+            const data = await res.json();
+            
+            const parts = data.response.split('\n\n');
+            const pubmed = parts[0];
+            const interpretation = parts.slice(1).join('\n\n').split('\n').filter(p => p.trim()).map(p => `<li>${p.replace(/^•\s?|^\d+\.\s?/, '')}</li>`).join('');
+
+            chatMessages.innerHTML += `
+                <div class="flex justify-start w-full">
+                    <div class="w-full max-w-[95%] space-y-4">
+                        <div class="pubmed-box">
+                            <h5 class="text-emerald-600 font-black text-xs uppercase mb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-book-medical"></i> Medical Literature Summary
+                            </h5>
+                            <p class="text-sm dark:text-slate-300 leading-relaxed">${pubmed}</p>
+                        </div>
+                        <div class="ai-box">
+                            <h5 class="text-blue-600 font-black text-xs uppercase mb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-clipboard-check"></i> Clinical Interpretation
+                            </h5>
+                            <ul class="text-sm dark:text-slate-300 space-y-3 list-disc pl-5">
+                                ${interpretation}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showView(v) {
+            ['triageView', 'doctorView', 'chatView'].forEach(id => document.getElementById(id).classList.toggle('hidden', id !== v));
+        }
+
+        function logout() { location.reload(); }
+    </script>
+</body>
 </html>

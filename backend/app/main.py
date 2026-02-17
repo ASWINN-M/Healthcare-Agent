@@ -1,32 +1,26 @@
-from fastapi import FastAPI, HTTPException, Depends
+import os
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from backend.app import (
-    triagent,
-    doctorconnect,
-    users,
-    medical_profile_user,
-    store_conversation,
-)
-import backend.app.agents.agent as agent
+from typing import List, Optional
+from datetime import datetime
 
-app = FastAPI(title="Healthcare Agent API")
+# Importing your existing backend logic 
+from backend.app import triagent, users, medical_profile_user, doctorconnect, store_conversation
+from backend.app.database import get_connection
+from backend.app.agents import agent 
 
-# ─────────────────────────────────────────────
-# CORS (Frontend Support)
-# ─────────────────────────────────────────────
+app = FastAPI(title="AgenticHealthAI API")
 
+# Enable CORS for frontend interaction
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_credentials=True,
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ─────────────────────────────────────────────
-# Request Models
-# ─────────────────────────────────────────────
+# --- Data Models ---
 
 class SignupRequest(BaseModel):
     name: str
@@ -35,153 +29,101 @@ class SignupRequest(BaseModel):
     blood_group: str
     allergies: str
 
-
 class LoginRequest(BaseModel):
     email: str
     password: str
 
-
-class UpdateProfileRequest(BaseModel):
+class UserQuery(BaseModel):
     user_id: int
-    blood_group: str
-    allergies: str
+    query: str
 
-
-class SymptomRequest(BaseModel):
-    user_id: int
-    symptoms: str
-
-
-class ChatRequest(BaseModel):
-    user_id: int
-    message: str
-
-
-# ─────────────────────────────────────────────
-# AUTH APIs
-# ─────────────────────────────────────────────
+# --- Endpoints ---
 
 @app.post("/signup")
 def signup(data: SignupRequest):
+    """Handles user creation and immediate profile setup."""
     try:
+        # Create user
         user_id = users.create_user(data.name, data.email, data.password)
-        medical_profile_user.create_medical_profiles(
-            user_id, data.blood_group, data.allergies
-        )
-
-        return {
-            "message": "Signup successful",
-            "user_id": user_id,
-            "name": data.name,
-        }
-
+        # Create medical profile
+        medical_profile_user.create_medical_profiles(user_id, data.blood_group, data.allergies)
+        return {"id": user_id, "name": data.name}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-
 @app.post("/login")
 def login(data: LoginRequest):
+    """Authenticates and retrieves user profile."""
     user = users.get_user(data.email, data.password)
+    if user:
+        # user tuple: (id, name, email, password_hash)
+        profile = medical_profile_user.get_medical_profiles(user[0])
+        return {
+            "id": user[0], 
+            "name": user[1], 
+            "profile": {
+                "blood_group": profile[0][2], 
+                "allergies": profile[0][3]
+            } if profile else None
+        }
+    raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    if not user:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+@app.get("/history/{user_id}")
+def get_history(user_id: int):
+    """Retrieves previous user queries for the right-side sidebar."""
+    try:
+        conn = get_connection("conversation")
+        cursor = conn.cursor()
+        # Fetching only user role messages for history
+        query = """
+            SELECT message, created_at 
+            FROM conversations 
+            WHERE user_id = %s AND role = 'user' 
+            ORDER BY created_at DESC LIMIT 10
+        """
+        cursor.execute(query, (user_id,))
+        rows = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return [{"query": r[0], "time": r[1].strftime("%Y-%m-%d %H:%M")} for r in rows]
+    except Exception as e:
+        return []
 
-    return {
-        "message": "Login successful",
-        "user_id": user[0],
-        "name": user[1],
-    }
-
-
-# ─────────────────────────────────────────────
-# PROFILE
-# ─────────────────────────────────────────────
-
-@app.get("/profile/{user_id}")
-def get_profile(user_id: int):
-    profiles = medical_profile_user.get_medical_profiles(user_id)
-
-    if not profiles:
-        raise HTTPException(status_code=404, detail="Profile not found")
-
-    p = profiles[0]
-
-    return {
-        "blood_group": p[2],
-        "allergies": p[3],
-    }
-
-
-@app.put("/profile/update")
-def update_profile(data: UpdateProfileRequest):
-    medical_profile_user.update_medical_profiles(
-        data.user_id, data.blood_group, data.allergies
-    )
-    return {"message": "Profile updated successfully"}
-
-
-# ─────────────────────────────────────────────
-# SYMPTOM ANALYSIS
-# ─────────────────────────────────────────────
-
-@app.post("/analyze")
-def analyze(data: SymptomRequest):
-    risk = triagent.check_risk(data.symptoms)
-
-    return {
-        "risk_level": risk["risk_level"],
-        "advice": risk["advice"],
-    }
-
-
-# ─────────────────────────────────────────────
-# DOCTOR LIST
-# ─────────────────────────────────────────────
-
-@app.get("/doctors")
-def doctors():
-    location = doctorconnect.user_location()
-
-    if not location:
-        raise HTTPException(status_code=400, detail="Location not available")
-
-    lat, lon = location
-    doctors = doctorconnect.find_nearest_doctors(lat, lon)
-
-    return {
-        "doctors": [
-            {
-                "name": name,
-                "specialty": specialty,
-                "phone": phone,
-                "distance_km": round(distance, 2),
-            }
-            for name, specialty, phone, distance in doctors
-        ]
-    }
-
-
-# ─────────────────────────────────────────────
-# AI CHAT
-# ─────────────────────────────────────────────
+@app.post("/triage")
+def triage(data: UserQuery):
+    """Analyzes symptoms using triagent logic."""
+    return triagent.check_risk(data.query)
 
 @app.post("/chat")
-def chat(data: ChatRequest):
-    try:
-        store_conversation.store_conversation(data.user_id, "user", data.message)
+def chat(data: UserQuery):
+    """Communicates with the AI Agent and logs the conversation."""
+    # Store user message
+    store_conversation.store_conversation(data.user_id, "user", data.query)
+    
+    # Get agent response
+    raw_response = agent.get_response(data.query, user_id=str(data.user_id))
+    
+    # Simple logic to ensure the response can be split into PubMed and AI segments
+    # The frontend expects a double newline '\n\n' to segregate blocks
+    if "\n\n" not in raw_response:
+        formatted_response = f"Literature Summary: Information retrieved.\n\nClinical Interpretation: {raw_response}"
+    else:
+        formatted_response = raw_response
 
-        response = agent.get_response(
-            data.message,
-            user_id=str(data.user_id),
-        )
+    # Store AI response
+    store_conversation.store_conversation(data.user_id, "assistant", formatted_response)
+    
+    return {"response": formatted_response}
 
-        store_conversation.store_conversation(
-            data.user_id,
-            "assistant",
-            response,
-        )
+@app.get("/doctors")
+def get_doctors(lat: float, lon: float):
+    """Finds nearest doctors from the database."""
+    doctors = doctorconnect.find_nearest_doctors(lat, lon)
+    return [
+        {"name": d[0], "specialty": d[1], "phone": d[2], "dist": d[3]} 
+        for d in doctors
+    ]
 
-        return {"response": response}
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8000)
