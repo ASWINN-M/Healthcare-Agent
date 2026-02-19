@@ -6,7 +6,7 @@ load_dotenv()
 
 DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_USER = os.getenv("DB_USER", "root")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "Satlav@76")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_PORT = int(os.getenv("DB_PORT", 3306))
 
 
@@ -40,12 +40,7 @@ def init_db():
             )
         """)
         
-        # Create 'medical_profiles' database
-        print("Creating 'medical_profiles' database...")
-        cursor.execute("CREATE DATABASE IF NOT EXISTS medical_profiles")
-        cursor.execute("USE medical_profiles")
-        
-        # Create 'medical_profiles' table
+        # Create 'medical_profiles' table (moved to 'user' database)
         print("Creating 'medical_profiles' table...")
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS medical_profiles (
@@ -53,7 +48,20 @@ def init_db():
                 user_id INT NOT NULL,
                 blood_group VARCHAR(10),
                 allergies TEXT,
-                FOREIGN KEY (user_id) REFERENCES user.users(id)
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        """)
+
+        # Create 'conversations' table
+        print("Creating 'conversations' table...")
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS conversations (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                role ENUM('user', 'assistant') NOT NULL,
+                message TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
             )
         """)
         

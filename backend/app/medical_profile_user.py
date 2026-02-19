@@ -1,7 +1,7 @@
 from backend.app.database import get_connection
 
 def create_medical_profiles(user_id, blood_group, allergies):
-    conn = get_connection("medical_profiles")
+    conn = get_connection("user")
     cursor = conn.cursor()
     cursor.execute(
         "INSERT INTO medical_profiles (user_id, blood_group, allergies) VALUES (%s, %s, %s)",
@@ -12,7 +12,7 @@ def create_medical_profiles(user_id, blood_group, allergies):
     conn.close()
 
 def get_medical_profiles(user_id):
-    conn = get_connection("medical_profiles")
+    conn = get_connection("user")
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM medical_profiles WHERE user_id = %s", (user_id,))
     profiles = cursor.fetchall()
@@ -21,7 +21,7 @@ def get_medical_profiles(user_id):
     return profiles
 
 def update_medical_profiles(user_id, blood_group, allergies):
-    conn = get_connection("medical_profiles")
+    conn = get_connection("user")
     cursor = conn.cursor()
     cursor.execute(
         "UPDATE medical_profiles SET blood_group = %s, allergies = %s WHERE user_id = %s",
@@ -32,7 +32,7 @@ def update_medical_profiles(user_id, blood_group, allergies):
     conn.close()
 
 def delete_medical_profiles(user_id):
-    conn = get_connection("medical_profiles")
+    conn = get_connection("user")
     cursor = conn.cursor()
     cursor.execute("DELETE FROM medical_profiles WHERE user_id = %s", (user_id,))
     conn.commit()

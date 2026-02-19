@@ -1,11 +1,13 @@
 {
-  "servers": {
+  "mcpServers": {
     "pubmed": {
-      "transport": {
-        "type": "stdio",
-        "command": "python",
-        "args": ["-m", "mcp_use.pubmed"]
-      }
+      "command": "python.exe",
+      "args": [
+        "C:\\sl-ai\\PubMed-MCP-Server\\pubmed_server.py"
+      ],
+      "env": {},
+      "disabled": false,
+      "autoApprove": []
     }
   }
 }

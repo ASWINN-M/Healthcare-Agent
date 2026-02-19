@@ -31,14 +31,14 @@ def find_nearest_doctors(user_lat, user_lon, specialty=None):
 
     if specialty:
         query = """
-            SELECT name, specialty, latitude, longitude, phone_number
+            SELECT name, specialty, latitude, longitude, phone
             FROM doctors
             WHERE specialty = %s
         """
         cursor.execute(query, (specialty,))
     else:
         query = """
-            SELECT name, specialty, latitude, longitude, phone_number
+            SELECT name, specialty, latitude, longitude, phone
             FROM doctors
         """
         cursor.execute(query)

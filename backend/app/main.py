@@ -72,7 +72,7 @@ def login(data: LoginRequest):
 def get_history(user_id: int):
     """Retrieves previous user queries for the right-side sidebar."""
     try:
-        conn = get_connection("conversation")
+        conn = get_connection("user")
         cursor = conn.cursor()
         # Fetching only user role messages for history
         query = """
