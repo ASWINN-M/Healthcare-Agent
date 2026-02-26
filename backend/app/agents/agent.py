@@ -38,7 +38,7 @@ class GraphState(TypedDict):
 async def mcp_call(state: GraphState) -> GraphState:
     """Calls the MCP server with the current graph state and updates the graph state with the response"""
     
-    with open("backend/config_mcp.json", "r") as f:
+    with open("config_mcp.json", "r") as f:
         config = json.load(f)
   
     client = MCPClient.from_dict(config)

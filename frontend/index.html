@@ -1,295 +1,112 @@
 <!DOCTYPE html>
-<html lang="en" class="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>AgenticHealthAI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; transition: background-color 0.3s ease; }
-
-        /* Staggered Logo - Larger Font Sizes */
-        .logo-container { display: flex; align-items: center; font-weight: 800; letter-spacing: -0.5px; }
-        .logo-main { font-size: 1.8rem; }
-        .logo-sup { font-size: 0.9rem; vertical-align: super; position: relative; top: -6px; margin: 0 2px; }
-
-        /* Responsive Sidebar Grid */
-        .dashboard-grid { display: grid; grid-template-columns: 1fr 320px; gap: 2rem; }
-        @media (max-width: 1024px) { .dashboard-grid { grid-template-columns: 1fr; } }
-
-        /* Segregation Styling */
-        .pubmed-box { border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.08); padding: 1.5rem; border-radius: 1rem; }
-        .ai-box { border-left: 4px solid #3b82f6; background: rgba(59, 130, 246, 0.08); padding: 1.5rem; border-radius: 1rem; }
-        
-        /* Fixed colors for visibility */
-        .dark .text-adaptive { color: #f8fafc !important; }
-        .light .text-adaptive { color: #0f172a !important; }
-
-        /* FORCE ALL TEXT TO WHITE IN DARK MODE */
-        .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark p, .dark span, .dark label, .dark li, .dark textarea, .dark input {
-            color: #ffffff !important;
-        }
-
-        .chat-scroll::-webkit-scrollbar { width: 4px; }
-        .chat-scroll::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
-    </style>
-    <script> tailwind.config = { darkMode: 'class' } </script>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+<body class="bg-[#f0f4f9] text-[#1f1f1f] overflow-hidden h-screen flex flex-col">
 
-    <nav id="navbar" class="hidden fixed w-full top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-10 py-4 flex justify-between items-center border-b dark:border-slate-800">
+    <div id="lifelineLoader" class="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center hidden">
+        <svg viewBox="0 0 100 20" class="w-full max-w-xl h-24 stroke-red-500 fill-none stroke-[1] ecg-animation">
+            <path d="M0,10 L30,10 L35,2 L45,18 L50,10 L100,10" />
+        </svg>
+        <p class="text-red-500 font-bold tracking-[0.5em] mt-4 animate-pulse uppercase">Synchronizing...</p>
+    </div>
+
+    <a href="tel:108" class="fixed top-6 right-6 z-[80] bg-[#d32f2f] text-white p-4 rounded-full shadow-lg hover:scale-110 transition-all flex items-center gap-2 group overflow-hidden">
+        <i class="fa-solid fa-truck-medical animate-bounce"></i>
+        <span class="max-w-0 group-hover:max-w-xs transition-all duration-500 font-black text-xs whitespace-nowrap">EMERGENCY 108</span>
+    </a>
+
+    <nav id="navbar" class="hidden fixed w-full top-0 z-50 bg-white/80 backdrop-blur-md px-10 py-4 flex justify-between items-center border-b border-[#dfe1e5]">
         <div class="logo-container cursor-pointer" onclick="showView('triageView')">
-            <span class="logo-sup text-blue-500 font-black">AGENTIC</span>
-            <span class="logo-main text-adaptive">HEALTH</span>
-            <span class="logo-sup text-blue-500 font-black">AI</span>
+            <span class="logo-sup text-[#0b57d0] font-black">AGENTIC</span>
+            <span class="logo-main text-[#1f1f1f]">HEALTH</span>
+            <span class="logo-sup text-[#0b57d0] font-black">AI</span>
         </div>
-        
-        <div class="flex items-center gap-8">
-            <button onclick="showView('triageView')" class="text-sm font-black text-adaptive hover:text-blue-500 transition tracking-tighter">HOME</button>
-            <button onclick="toggleTheme()" class="text-adaptive hover:scale-110 transition"><i id="themeIcon" class="fa-solid fa-moon"></i></button>
-            <span id="navName" class="font-bold text-adaptive border-l dark:border-slate-700 pl-6"></span>
-            <button onclick="logout()" class="text-xs font-black bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600 shadow-lg shadow-red-500/20">LOGOUT</button>
+        <div class="flex items-center gap-6 mr-16">
+            <div class="relative group">
+                <div id="profileTrigger" class="flex items-center gap-3 cursor-pointer border-l border-[#dfe1e5] pl-6 h-10">
+                    <span id="navName" class="font-bold text-sm"></span>
+                    <div class="w-10 h-10 rounded-full bg-[#0b57d0] flex items-center justify-center text-white"><i class="fa-solid fa-user-md"></i></div>
+                </div>
+                <div class="absolute right-0 top-full mt-2 w-60 bg-white rounded-2xl shadow-xl border border-[#dfe1e5] invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all z-[60] py-4">
+                    <button onclick="openPopup('historyPopup')" class="w-full px-6 py-3 text-left hover:bg-[#f1f3f4] text-sm flex items-center gap-3"><i class="fa-solid fa-clock-rotate-left text-[#444746]"></i> History</button>
+                    <button onclick="openPopup('profilePopup')" class="w-full px-6 py-3 text-left hover:bg-[#f1f3f4] text-sm flex items-center gap-3"><i class="fa-solid fa-user-pen text-[#444746]"></i> Update Profile</button>
+                    <div class="border-t border-[#dfe1e5] my-2"></div>
+                    <button onclick="location.reload()" class="w-full px-6 py-3 text-left text-[#d32f2f] font-bold text-sm hover:bg-[#fce8e6] flex items-center gap-3"><i class="fa-solid fa-power-off"></i> Logout</button>
+                </div>
+            </div>
         </div>
     </nav>
 
-    <div id="appContainer" class="pt-28 px-10 max-w-[1600px] mx-auto hidden">
-        <div class="dashboard-grid">
-            
-            <main class="space-y-8">
-                
-                <div id="triageView" class="bg-white dark:bg-slate-900 p-10 rounded-[3rem] shadow-xl border dark:border-slate-800">
-                    <h2 class="text-3xl font-black mb-6 text-adaptive">Symptom Assessment</h2>
-                    <textarea id="symptomText" class="w-full p-8 rounded-3xl border-2 dark:bg-slate-800 dark:border-slate-700 text-adaptive h-56 outline-none focus:border-blue-500 transition-all placeholder-slate-400" placeholder="Type symptoms here..."></textarea>
-                    <button onclick="runTriage()" class="mt-8 bg-blue-600 text-white px-12 py-4 rounded-2xl font-bold hover:bg-blue-700 shadow-xl shadow-blue-500/30">Start Analysis</button>
-
-                    <div id="triageResult" class="hidden mt-10 p-10 rounded-[2.5rem] border-l-[12px]">
-                        <h3 id="riskTitle" class="text-2xl font-black mb-2"></h3>
-                        <p id="riskAdvice" class="text-lg opacity-90 mb-8"></p>
-                        <div id="resultActions" class="flex gap-4"></div>
-                    </div>
-                </div>
-
-                <div id="doctorView" class="hidden space-y-8">
-                    <div class="flex justify-between items-center">
-                        <h2 class="text-2xl font-black text-adaptive">Nearby Medical Professionals</h2>
-                        <button onclick="showView('triageView')" class="text-blue-500 font-bold"><i class="fa-solid fa-arrow-left mr-2"></i> HOME</button>
-                    </div>
-                    <div id="doctorGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
-                    <div class="p-8 border-2 border-dashed dark:border-slate-800 rounded-[2rem] text-center">
-                        <p class="text-slate-500 font-bold mb-4">Would you like to consult the AI while waiting for a doctor?</p>
-                        <button onclick="showView('chatView')" class="bg-slate-900 dark:bg-white dark:text-slate-900 text-white px-10 py-3 rounded-xl font-bold">Start AI Chat</button>
-                    </div>
-                </div>
-
-                <div id="chatView" class="hidden bg-white dark:bg-slate-900 p-10 rounded-[3rem] shadow-2xl border dark:border-slate-800 h-[850px] flex flex-col">
-                    <div class="flex justify-between items-center mb-6">
-                        <button onclick="showView('triageView')" class="text-slate-400 font-bold hover:text-blue-500"><i class="fa-solid fa-arrow-left mr-2"></i> BACK</button>
-                        <h2 class="text-xl font-black text-adaptive">AgenticHealthAI Specialist</h2>
-                        <div class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30"><i class="fa-solid fa-robot"></i></div>
-                    </div>
-                    <div id="chatMessages" class="flex-1 overflow-y-auto space-y-6 pr-4 chat-scroll"></div>
-                    <div class="mt-8 flex gap-4">
-                        <input id="chatInput" class="flex-1 p-5 rounded-3xl border-2 dark:bg-slate-800 dark:border-slate-700 text-adaptive outline-none focus:border-blue-500" placeholder="Ask a follow-up...">
-                        <button onclick="sendChat()" class="bg-blue-600 text-white px-12 rounded-2xl font-black hover:bg-blue-700 transition">SEND</button>
-                    </div>
-                </div>
-            </main>
-
-            <aside class="space-y-6">
-                <div class="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] shadow-lg border dark:border-slate-800 sticky top-28">
-                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-                        <i class="fa-solid fa-clock-rotate-left"></i> Analysis History
-                    </h3>
-                    <div id="historyList" class="space-y-4 max-h-[600px] overflow-y-auto chat-scroll pr-2">
-                    </div>
-                </div>
-            </aside>
+    <div id="authContainer" class="flex-1 grid grid-cols-1 lg:grid-cols-2 bg-white">
+        <div class="hidden lg:flex flex-col items-center justify-center bg-[#f8f9fa] p-16">
+            <div class="logo-container scale-[2] mb-12">
+                <span class="logo-sup text-[#0b57d0] font-black">AGENTIC</span><span class="logo-main text-[#1f1f1f]">HEALTH</span><span class="logo-sup text-[#0b57d0] font-black">AI</span>
+            </div>
+            <div class="w-full max-w-md">
+                <br>
+                <p class="text-[10px] font-black text-[#0b57d0] uppercase tracking-[0.2em] mb-4 text-center">Latest WHO headlines</p>
+                <div id="whoRssAuth"></div>
+            </div>
         </div>
-    </div>
-
-    <div id="authContainer" class="min-h-screen bg-slate-900 flex items-center justify-center p-6 bg-cover bg-center" style="background-image: linear-gradient(rgba(10, 25, 47, 0.8), rgba(10, 25, 47, 0.8)), url('https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=2070');">
-        <div class="bg-white/10 backdrop-blur-xl p-12 rounded-[3rem] border border-white/20 w-full max-w-md shadow-2xl">
-            <div class="logo-container justify-center mb-10">
-                <span class="logo-sup text-blue-400 font-black">AGENTIC</span>
-                <span class="logo-main text-white">HEALTH</span>
-                <span class="logo-sup text-blue-400 font-black">AI</span>
-            </div>
-
-            <div class="flex bg-white/10 p-1 rounded-2xl mb-8">
-                <button id="tabLogin" onclick="toggleAuth('login')" class="flex-1 py-3 rounded-xl font-bold bg-white/20 text-white">Login</button>
-                <button id="tabSignup" onclick="toggleAuth('signup')" class="flex-1 py-3 rounded-xl font-bold text-white/50">Signup</button>
-            </div>
-
-            <div id="loginForm" class="space-y-4">
-                <input id="lEmail" placeholder="Email" class="w-full p-4 rounded-2xl bg-white/5 border border-white/20 text-white outline-none focus:bg-white/10">
-                <input id="lPass" type="password" placeholder="Password" class="w-full p-4 rounded-2xl bg-white/5 border border-white/20 text-white outline-none focus:bg-white/10">
-                <button onclick="handleLogin()" class="w-full bg-blue-600 text-white p-4 rounded-2xl font-black hover:bg-blue-700 transition shadow-xl shadow-blue-500/40">LOGIN PORTAL</button>
-            </div>
-
-            <div id="signupForm" class="hidden space-y-4">
-                <input id="sName" placeholder="Full Name" class="w-full p-4 rounded-2xl bg-white/5 border border-white/20 text-white outline-none focus:bg-white/10">
-                <input id="sEmail" placeholder="Email" class="w-full p-4 rounded-2xl bg-white/5 border border-white/20 text-white outline-none focus:bg-white/10">
-                <input id="sPass" type="password" placeholder="Password" class="w-full p-4 rounded-2xl bg-white/5 border border-white/20 text-white outline-none focus:bg-white/10">
-                <div class="flex gap-2">
-                    <input id="sBlood" placeholder="Blood" class="w-1/3 p-4 rounded-2xl bg-white/5 border border-white/20 text-white outline-none">
-                    <input id="sAllergies" placeholder="Allergies" class="w-2/3 p-4 rounded-2xl bg-white/5 border border-white/20 text-white outline-none">
+        <div class="flex items-center justify-center p-8 bg-white lg:bg-[#f0f4f9]">
+            <div class="bg-white p-12 rounded-[3.5rem] shadow-2xl w-full max-w-md floating-box border border-[#dfe1e5]">
+                <div class="flex bg-[#f1f3f4] p-1 rounded-2xl mb-8">
+                    <button id="tabLogin" onclick="toggleAuth('login')" class="flex-1 py-3 rounded-xl font-bold bg-white shadow-sm">Login</button>
+                    <button id="tabSignup" onclick="toggleAuth('signup')" class="flex-1 py-3 rounded-xl font-bold text-[#444746]">Signup</button>
                 </div>
-                <button onclick="handleSignup()" class="w-full bg-green-600 text-white p-4 rounded-2xl font-black hover:bg-green-700 transition shadow-xl">REGISTER ACCOUNT</button>
+                <div id="loginForm" class="space-y-4">
+                    <input id="lEmail" placeholder="Medical Email" class="auth-input">
+                    <input id="lPass" type="password" placeholder="Password" class="auth-input">
+                    <button onclick="handleLogin()" class="w-full bg-[#0b57d0] text-white p-5 rounded-2xl font-black shadow-md hover:bg-[#0842a0] transition">LOGIN</button>
+                </div>
+                <div id="signupForm" class="hidden space-y-4">
+                    <input id="sName" placeholder="Full Name" class="auth-input">
+                    <input id="sEmail" placeholder="Email" class="auth-input">
+                    <input id="sPass" type="password" placeholder="Password" class="auth-input">
+                    <div class="flex gap-2">
+                        <input id="sBlood" placeholder="Blood" class="auth-input !w-1/3">
+                        <input id="sAllergies" placeholder="Allergies" class="auth-input !w-2/3">
+                    </div>
+                    <button onclick="handleSignup()" class="w-full bg-[#0b57d0] text-white p-5 rounded-2xl font-black">REGISTER</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <script>
-        const API = "http://127.0.0.1:8000";
-        let user = null;
-
-        function toggleTheme() {
-            document.documentElement.classList.toggle('dark');
-            const isDark = document.documentElement.classList.contains('dark');
-            document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
-        }
-
-        function toggleAuth(mode) {
-            const isLogin = mode === 'login';
-            document.getElementById('loginForm').classList.toggle('hidden', !isLogin);
-            document.getElementById('signupForm').classList.toggle('hidden', isLogin);
-            document.getElementById('tabLogin').className = isLogin ? 'flex-1 py-3 rounded-xl font-bold bg-white/20 text-white' : 'flex-1 py-3 rounded-xl font-bold text-white/50';
-            document.getElementById('tabSignup').className = !isLogin ? 'flex-1 py-3 rounded-xl font-bold bg-white/20 text-white' : 'flex-1 py-3 rounded-xl font-bold text-white/50';
-        }
-
-        async function handleSignup() {
-            const res = await fetch(`${API}/signup`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ 
-                    name: sName.value, 
-                    email: sEmail.value, 
-                    password: sPass.value,
-                    blood_group: sBlood.value,
-                    allergies: sAllergies.value
-                })
-            });
-            if (res.ok) setupSession(await res.json());
-            else alert("Signup Failed");
-        }
-
-        async function handleLogin() {
-            const res = await fetch(`${API}/login`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ email: lEmail.value, password: lPass.value })
-            });
-            if (res.ok) setupSession(await res.json());
-            else alert("Login Failed");
-        }
-
-        function setupSession(data) {
-            user = data;
-            authContainer.classList.add('hidden');
-            appContainer.classList.remove('hidden');
-            navbar.classList.remove('hidden');
-            navName.innerText = user.name;
-            loadHistory();
-        }
-
-        async function loadHistory() {
-            const res = await fetch(`${API}/history/${user.id}`);
-            const history = await res.json();
-            historyList.innerHTML = history.map(h => `
-                <div class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border dark:border-slate-800 border-transparent hover:border-blue-500/30 transition-all cursor-default">
-                    <p class="text-[10px] font-black text-blue-500 mb-1">${h.time}</p>
-                    <p class="text-sm italic text-adaptive opacity-80 line-clamp-2">"${h.query}"</p>
-                </div>
-            `).join('');
-        }
-
-        async function runTriage() {
-            const res = await fetch(`${API}/triage`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ user_id: user.id, query: symptomText.value })
-            });
-            const data = await res.json();
-            const isHigh = data.risk_level.includes('high');
-            
-            triageResult.classList.remove('hidden');
-            triageResult.className = `mt-10 p-10 rounded-[2.5rem] border-l-[12px] animate-in fade-in duration-300 ${isHigh ? 'bg-red-50 dark:bg-red-900/10 border-red-500 text-adaptive' : 'bg-blue-50 dark:bg-blue-900/10 border-blue-500 text-adaptive'}`;
-            riskTitle.innerText = data.risk_level.toUpperCase();
-            riskAdvice.innerText = data.advice;
-
-            resultActions.innerHTML = isHigh 
-                ? `<button onclick="loadDoctors()" class="bg-red-600 text-white px-10 py-3 rounded-xl font-bold">CONTACT DOCTOR</button>`
-                : `<button onclick="showView('chatView')" class="bg-blue-600 text-white px-10 py-3 rounded-xl font-bold">ASK AI AGENT</button>
-                   <button onclick="loadDoctors()" class="bg-slate-200 dark:bg-slate-800 text-adaptive px-10 py-3 rounded-xl font-bold">FIND CLINICS</button>`;
-            
-            loadHistory();
-        }
-
-        async function loadDoctors() {
-            showView('doctorView');
-            navigator.geolocation.getCurrentPosition(async (pos) => {
-                const res = await fetch(`${API}/doctors?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
-                const doctors = await res.json();
-                doctorGrid.innerHTML = doctors.map(d => `
-                    <div class="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border dark:border-slate-800 shadow-lg hover:border-blue-500/50 transition-all">
-                        <div class="flex justify-between items-start mb-4">
-                            <h4 class="font-black text-xl text-adaptive">${d.name}</h4>
-                            <span class="text-xs font-bold text-blue-500 bg-blue-500/10 px-3 py-1 rounded-full">${d.dist.toFixed(1)} KM</span>
-                        </div>
-                        <p class="text-slate-500 font-bold mb-1">${d.specialty}</p>
-                        <p class="text-blue-600 dark:text-blue-400 font-black text-lg mb-6"><i class="fa-solid fa-phone-flip mr-2"></i> ${d.phone}</p>
-                        <a href="tel:${d.phone}" class="block text-center bg-slate-900 dark:bg-white dark:text-slate-900 text-white py-3 rounded-xl font-black">CONTACT NOW</a>
-                    </div>
-                `).join('');
-            });
-        }
-
-        async function sendChat() {
-            const query = chatInput.value;
-            if(!query) return;
-            chatMessages.innerHTML += `<div class="flex justify-end"><div class="bg-blue-600 text-white p-5 rounded-3xl rounded-tr-none max-w-[80%] shadow-xl font-medium">${query}</div></div>`;
-            chatInput.value = '';
-
-            const res = await fetch(`${API}/chat`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ user_id: user.id, query })
-            });
-            const data = await res.json();
-            
-            const parts = data.response.split('\n\n');
-            const pubmed = parts[0];
-            const interpretation = parts.slice(1).join('\n\n').split('\n').filter(p => p.trim()).map(p => `<li>${p.replace(/^•\s?|^\d+\.\s?/, '')}</li>`).join('');
-
-            chatMessages.innerHTML += `
-                <div class="flex justify-start w-full">
-                    <div class="w-full max-w-[95%] space-y-4">
-                        <div class="pubmed-box">
-                            <h5 class="text-emerald-600 font-black text-xs uppercase mb-3 flex items-center gap-2">
-                                <i class="fa-solid fa-book-medical"></i> Medical Literature Summary
-                            </h5>
-                            <p class="text-sm dark:text-slate-300 leading-relaxed">${pubmed}</p>
-                        </div>
-                        <div class="ai-box">
-                            <h5 class="text-blue-600 font-black text-xs uppercase mb-3 flex items-center gap-2">
-                                <i class="fa-solid fa-clipboard-check"></i> Clinical Interpretation
-                            </h5>
-                            <ul class="text-sm dark:text-slate-300 space-y-3 list-disc pl-5">
-                                ${interpretation}
-                            </ul>
-                        </div>
+    <div id="appViews" class="hidden pt-28 px-10 flex-1 max-w-[1500px] mx-auto w-full h-full overflow-hidden">
+        <div class="grid grid-cols-12 gap-8 h-[calc(100vh-140px)]">
+            <div class="col-span-12 lg:col-span-8 flex flex-col h-full overflow-hidden">
+                <div class="bg-white p-10 rounded-[3rem] shadow-sm border border-[#dfe1e5] h-full flex flex-col">
+                    <h2 class="text-3xl font-black mb-8">Symptom Assessment</h2>
+                    <textarea id="symptomText" class="w-full flex-1 p-8 rounded-[2.5rem] border-2 border-[#dfe1e5] bg-[#f8f9fa] outline-none focus:border-[#0b57d0] transition-all text-lg placeholder-[#444746]" placeholder="Describe symptoms (e.g., persistent dry cough)..."></textarea>
+                    <button onclick="runTriage()" class="mt-8 bg-[#0b57d0] text-white px-14 py-4 rounded-2xl font-black shadow-lg">ANALYZE</button>
+                    
+                    <div id="triageResult" class="hidden mt-10 p-10 rounded-[3rem] border-l-[15px] flex justify-between items-center bg-[#f1f3f4]">
+                        <div class="max-w-xl"><h3 id="riskTitle" class="text-2xl font-black mb-2"></h3><p id="riskAdvice" class="text-[#444746]"></p></div>
+                        <div id="resultActions" class="flex flex-col gap-3"></div>
                     </div>
                 </div>
-            `;
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
+            </div>
+            <div class="hidden lg:block col-span-4 h-full overflow-hidden">
+                <div class="bg-white p-10 rounded-[3rem] shadow-sm border border-[#dfe1e5] h-full overflow-y-auto no-scrollbar">
+                    <h3 class="text-[20px] font-black text-[#0b57d0] uppercase tracking-widest mb-10">PubMed Trending Research</h3>
+                    <div id="pubmedGrid" class="space-y-6"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        function showView(v) {
-            ['triageView', 'doctorView', 'chatView'].forEach(id => document.getElementById(id).classList.toggle('hidden', id !== v));
-        }
+    <div id="historyPopup" class="popup-overlay hidden"><div class="popup-card w-full max-w-2xl h-[70vh] flex flex-col"><div class="flex justify-between mb-8 border-b pb-4"><h2 class="text-2xl font-black">History</h2><button onclick="closePopup('historyPopup')" class="close-btn"><i class="fa-solid fa-times"></i></button></div><div id="historyContent" class="flex-1 overflow-y-auto space-y-4 pr-2 scroll-custom"></div></div></div>
+    <div id="doctorPopup" class="popup-overlay hidden"><div class="popup-card w-full max-w-3xl h-[60vh] flex flex-col"><div class="flex justify-between mb-8"><h2 class="text-2xl font-black">Clinics Near You</h2><button onclick="closePopup('doctorPopup')" class="close-btn"><i class="fa-solid fa-times"></i></button></div><div id="doctorGrid" class="grid gap-4 flex-1 overflow-y-auto pr-2 scroll-custom"></div></div></div>
+    <div id="chatPopup" class="popup-overlay hidden"><div class="popup-card w-full max-w-4xl h-[85vh] flex flex-col shadow-2xl"><div class="flex justify-between border-b pb-6 mb-6"><h2 class="text-xl font-black">AI Clinical Specialist</h2><button onclick="closePopup('chatPopup')" class="close-btn"><i class="fa-solid fa-times"></i></button></div><div id="chatMessages" class="flex-1 overflow-y-auto pr-4 mb-6 scroll-custom space-y-6"></div><div class="flex gap-4"><input id="chatInput" class="flex-1 p-5 rounded-3xl bg-[#f1f3f4] border-none" placeholder="Ask follow-up..."><button onclick="sendChat()" class="bg-[#0b57d0] text-white px-10 rounded-2xl font-black">SEND</button></div></div></div>
+    <div id="profilePopup" class="popup-overlay hidden"><div class="popup-card w-full max-w-md text-center relative"><button onclick="closePopup('profilePopup')" class="absolute top-6 right-6 text-[#444746] hover:text-[#d32f2f] font-black"><i class="fa-solid fa-times mr-1"></i> </button><h2 class="text-2xl font-black mb-6 italic">Hello, <span id="pName" class="text-[#0b57d0]"></span></h2><div class="space-y-4"><input id="pBlood" class="auth-input" placeholder="Blood Type"><input id="pAllergies" class="auth-input" placeholder="Allergies"><button onclick="handleUpdateProfile()" class="w-full bg-[#0b57d0] text-white p-4 rounded-2xl font-black">UPDATE PROFILE</button></div></div></div>
 
-        function logout() { location.reload(); }
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>

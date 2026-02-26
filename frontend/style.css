@@ -1,0 +1,32 @@
+/* Logo Styling */
+.logo-container { display: flex; align-items: center; font-weight: 800; }
+.logo-main { font-size: 1.8rem; letter-spacing: -1px; }
+.logo-sup { font-size: 0.9rem; vertical-align: super; position: relative; top: -6px; margin: 0 2px; }
+
+/* ECG Pulse Animation */
+.ecg-animation path { stroke-dasharray: 100; stroke-dashoffset: 100; animation: ecg-pulse 2.5s infinite linear; }
+@keyframes ecg-pulse { 0% { stroke-dashoffset: 100; opacity: 0; } 20% { opacity: 1; } 100% { stroke-dashoffset: -100; opacity: 0; } }
+
+/* Modals & Popups */
+.popup-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); z-index: 70; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+.popup-card { background: white; border-radius: 3rem; padding: 3rem; animation: popupRaise 0.4s ease-out forwards; border: 1px solid #dfe1e5; }
+@keyframes popupRaise { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* Inputs */
+.auth-input { width: 100%; padding: 1.2rem; border-radius: 1.5rem; background: #f8f9fa; border: 1px solid #dfe1e5; color: #1f1f1f; outline: none; transition: 0.3s; }
+.auth-input:focus { border-color: #0b57d0; background: white; }
+
+/* Chat Formatting */
+.pubmed-box { border-left: 6px solid #1e8e3e; background: #e6f4ea; padding: 1.5rem; border-radius: 1.5rem; color: #202124; }
+.ai-box { border-left: 6px solid #1a73e8; background: #e8f0fe; padding: 1.5rem; border-radius: 1.5rem; color: #202124; }
+.ai-box ul { list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; }
+.ai-box li { margin-bottom: 0.75rem; line-height: 1.5; font-weight: 500; }
+
+/* Dashboard Utilities */
+.floating-box { animation: float 4s ease-in-out infinite; }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.scroll-custom::-webkit-scrollbar { width: 6px; }
+.scroll-custom::-webkit-scrollbar-thumb { background: #dfe1e5; border-radius: 10px; }
+.close-btn { color: #444746; font-size: 1.5rem; transition: 0.2s; }
+.close-btn:hover { color: #d32f2f; }
