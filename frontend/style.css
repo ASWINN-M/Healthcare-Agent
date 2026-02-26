@@ -3,30 +3,43 @@
 .logo-main { font-size: 1.8rem; letter-spacing: -1px; }
 .logo-sup { font-size: 0.9rem; vertical-align: super; position: relative; top: -6px; margin: 0 2px; }
 
-/* ECG Pulse Animation */
+/* ECG Animation */
 .ecg-animation path { stroke-dasharray: 100; stroke-dashoffset: 100; animation: ecg-pulse 2.5s infinite linear; }
 @keyframes ecg-pulse { 0% { stroke-dashoffset: 100; opacity: 0; } 20% { opacity: 1; } 100% { stroke-dashoffset: -100; opacity: 0; } }
 
-/* Modals & Popups */
+/* Requirement 2: Circular Emergency Button with Transition */
+.emergency-circle-btn {
+    position: fixed; top: 1.5rem; right: 1.5rem; z-index: 100;
+    width: 3.5rem; height: 3.5rem; background: #d32f2f; color: white;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 10px 20px rgba(211, 47, 47, 0.3); transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none; overflow: hidden;
+}
+.emergency-circle-btn:hover { width: 12.5rem; border-radius: 2rem; }
+.emergency-circle-btn span { display: none; margin-left: 0.8rem; font-weight: 900; font-size: 0.75rem; white-space: nowrap; }
+.emergency-circle-btn:hover span { display: inline; }
+
+/* Requirement 3: B/W Stethoscope Pulse */
+@keyframes stethoscope-pulse-bw { 0%, 100% { opacity: 0.03; transform: scale(1); } 50% { opacity: 0.12; transform: scale(1.15); } }
+.stethoscope-bw-pulse { position: absolute; top: 1.5rem; right: 2rem; font-size: 3.5rem; color: black; opacity: 0.05; animation: stethoscope-pulse-bw 4s infinite; pointer-events: none; }
+
+/* Requirement 4: Cyclic Loading Dots (1 to 5) */
+.cyclic-dots::after {
+    content: '.'; display: inline-block; width: 3.5rem;
+    animation: dots-cycle 2s infinite steps(5);
+}
+@keyframes dots-cycle {
+    0% { content: '.'; } 20% { content: '..'; } 40% { content: '...'; }
+    60% { content: '....'; } 80% { content: '.....'; } 100% { content: '.'; }
+}
+
+/* UI Layout & Posh Components */
 .popup-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); z-index: 70; display: flex; align-items: center; justify-content: center; padding: 2rem; }
 .popup-card { background: white; border-radius: 3rem; padding: 3rem; animation: popupRaise 0.4s ease-out forwards; border: 1px solid #dfe1e5; }
 @keyframes popupRaise { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-/* Inputs */
-.auth-input { width: 100%; padding: 1.2rem; border-radius: 1.5rem; background: #f8f9fa; border: 1px solid #dfe1e5; color: #1f1f1f; outline: none; transition: 0.3s; }
-.auth-input:focus { border-color: #0b57d0; background: white; }
-
-/* Chat Formatting */
-.pubmed-box { border-left: 6px solid #1e8e3e; background: #e6f4ea; padding: 1.5rem; border-radius: 1.5rem; color: #202124; }
-.ai-box { border-left: 6px solid #1a73e8; background: #e8f0fe; padding: 1.5rem; border-radius: 1.5rem; color: #202124; }
-.ai-box ul { list-style: disc; padding-left: 1.5rem; margin-top: 0.5rem; }
-.ai-box li { margin-bottom: 0.75rem; line-height: 1.5; font-weight: 500; }
-
-/* Dashboard Utilities */
-.floating-box { animation: float 4s ease-in-out infinite; }
-@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
-.no-scrollbar::-webkit-scrollbar { display: none; }
+.auth-input { width: 100%; padding: 1.2rem; border-radius: 1.5rem; background: #f8f9fa; border: 1px solid #dfe1e5; color: #1f1f1f; outline: none; }
+.pubmed-box { border-left: 6px solid #1e8e3e; background: #e6f4ea; padding: 1.5rem; border-radius: 1.5rem; }
+.ai-box { border-left: 6px solid #1a73e8; background: #e8f0fe; padding: 1.5rem; border-radius: 1.5rem; }
 .scroll-custom::-webkit-scrollbar { width: 6px; }
 .scroll-custom::-webkit-scrollbar-thumb { background: #dfe1e5; border-radius: 10px; }
-.close-btn { color: #444746; font-size: 1.5rem; transition: 0.2s; }
-.close-btn:hover { color: #d32f2f; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
