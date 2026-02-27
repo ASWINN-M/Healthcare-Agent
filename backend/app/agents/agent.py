@@ -25,7 +25,7 @@ if not GROQ_API_KEY:
     raise ValueError("GROQ_API_KEY not found in .env file")
 
 model = ChatGroq(
-    model_name="meta-llama/llama-4-scout-17b-16e-instruct",
+    model_name="llama-3.3-70b-versatile",
     groq_api_key=GROQ_API_KEY
 )
 

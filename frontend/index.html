@@ -44,7 +44,8 @@
             <div class="logo-container scale-[2] mb-12">
                 <span class="logo-sup text-[#0b57d0] font-black">AGENTIC</span><span class="logo-main text-[#1f1f1f]">HEALTH</span><span class="logo-sup text-[#0b57d0] font-black">AI</span>
             </div>
-            <div class="w-full max-w-md"><p class="text-[10px] font-black text-[#0b57d0] uppercase tracking-[0.2em] mb-4 text-center">Global Health verified updates</p><div id="whoRssAuth"></div></div>
+            <br>
+            <div class="w-full max-w-md"><p class="text-[15px] font-black text-[#0b57d0] uppercase tracking-[0.2em] mb-4 text-center">WHO latest headlines</p><div id="whoRssAuth"></div></div>
         </div>
         <div class="flex items-center justify-center p-8 bg-[#f0f4f9]">
             <div class="bg-white p-12 rounded-[3.5rem] shadow-2xl w-full max-w-md floating-box border border-[#dfe1e5]">
@@ -101,8 +102,9 @@
     </div>
 
     <div id="historyPopup" class="popup-overlay hidden"><div class="popup-card w-full max-w-2xl h-[70vh] flex flex-col"><div class="flex justify-between mb-8 border-b pb-4"><h2 class="text-2xl font-black">History</h2><button onclick="closePopup('historyPopup')" class="close-btn"><i class="fa-solid fa-times"></i></button></div><div id="historyContent" class="flex-1 overflow-y-auto pr-2 scroll-custom"></div></div></div>
+    <div id="clinicsPopup" class="popup-overlay hidden"><div class="popup-card w-full max-w-2xl h-[70vh] flex flex-col"><div class="flex justify-between mb-8 border-b pb-4"><h2 class="text-2xl font-black">Nearby Clinics</h2><button onclick="closePopup('clinicsPopup')" class="close-btn"><i class="fa-solid fa-times"></i></button></div><div id="clinicsContent" class="flex-1 overflow-y-auto pr-2 scroll-custom"></div></div></div>
     <div id="chatPopup" class="popup-overlay hidden"><div class="popup-card w-full max-w-4xl h-[85vh] flex flex-col shadow-2xl"><div class="flex justify-between border-b pb-6 mb-6"><h2 class="text-xl font-black">AI Specialist</h2><button onclick="closePopup('chatPopup')" class="close-btn"><i class="fa-solid fa-times"></i></button></div><div id="chatMessages" class="flex-1 overflow-y-auto pr-4 mb-6 scroll-custom space-y-6"></div><div class="flex gap-4"><input id="chatInput" class="flex-1 p-5 rounded-3xl bg-[#f1f3f4] border-none" placeholder="Ask follow-up..."><button onclick="sendChat()" class="bg-[#0b57d0] text-white px-10 rounded-2xl font-black">SEND</button></div></div></div>
-    <div id="profilePopup" class="popup-overlay hidden"><div class="popup-card w-full max-w-md text-center relative"><button onclick="closePopup('profilePopup')" class="absolute top-6 right-6 text-[#444746] font-black hover:text-[#d32f2f]">EXIT</button><h2 class="text-2xl font-black italic">Hello, <span id="pName" class="text-[#0b57d0]"></span></h2><div class="space-y-4 mt-6"><input id="pBlood" class="auth-input" placeholder="Blood Type"><input id="pAllergies" class="auth-input" placeholder="Allergies"><button onclick="handleUpdateProfile()" class="w-full bg-[#0b57d0] text-white p-4 rounded-2xl font-black">UPDATE PROFILE</button></div></div></div>
+    <div id="profilePopup" class="popup-overlay hidden"><div class="popup-card w-full max-w-md text-center relative"><button onclick="closePopup('profilePopup')" class="absolute top-6 right-6 text-[#444746] font-black hover:text-[#d32f2f]">x</button><h2 class="text-2xl font-black italic">Hello, <span id="pName" class="text-[#0b57d0]"></span></h2><div class="space-y-4 mt-6"><input id="pBlood" class="auth-input" placeholder="Blood Type"><input id="pAllergies" class="auth-input" placeholder="Allergies"><button onclick="handleUpdateProfile()" class="w-full bg-[#0b57d0] text-white p-4 rounded-2xl font-black">UPDATE PROFILE</button></div></div></div>
 
     <script src="app.js"></script>
 </body>

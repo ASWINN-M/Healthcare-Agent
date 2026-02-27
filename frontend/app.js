@@ -37,12 +37,12 @@ function checkSession() {
 async function handleLogin() {
     const email = document.getElementById('lEmail').value;
     const password = document.getElementById('lPass').value;
-    const res = await fetch(`${API}/login`, { 
-        method: 'POST', 
-        headers: {'Content-Type': 'application/json'}, 
-        body: JSON.stringify({ email: email, password: password }) 
+    const res = await fetch(`${API}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, password: password })
     });
-    if(res.ok) {
+    if (res.ok) {
         const data = await res.json();
         // Save session locally
         localStorage.setItem('agentic_session', JSON.stringify({
@@ -99,10 +99,10 @@ function startTipRotation() {
 async function runTriage() {
     const symptomText = document.getElementById('symptomText').value;
     if (!symptomText) return;
-    const res = await fetch(`${API}/triage`, { 
-        method: 'POST', 
-        headers: {'Content-Type': 'application/json'}, 
-        body: JSON.stringify({ user_id: user.id, query: symptomText }) 
+    const res = await fetch(`${API}/triage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.id, query: symptomText })
     });
     const data = await res.json();
     document.getElementById('emergencyTips').classList.add('hidden'); // Hide tips on results
@@ -116,14 +116,14 @@ async function runTriage() {
 }
 
 async function sendChat() {
-    const q = chatInput.value; if(!q) return;
+    const q = chatInput.value; if (!q) return;
     const box = document.getElementById('chatMessages');
     box.innerHTML += `<div class="flex justify-end"><div class="bg-[#0b57d0] text-white p-4 rounded-2xl shadow-sm">${q}</div></div>`;
     const loadId = "load_" + Date.now();
     // Center-aligned Loading with Cyclic Dots
     box.innerHTML += `<div id="${loadId}" class="flex justify-center w-full py-6"><div class="bg-white border border-[#dfe1e5] px-6 py-3 rounded-full text-sm font-medium text-[#444746] flex items-center gap-2 shadow-sm">Gathering resources from PubMed MCP server<span class="cyclic-dots"></span></div></div>`;
     chatInput.value = ''; box.scrollTop = box.scrollHeight;
-    const res = await fetch(`${API}/chat`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ user_id: user.id, query: q }) });
+    const res = await fetch(`${API}/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: user.id, query: q }) });
     const data = await res.json();
     document.getElementById(loadId).remove();
     const parts = data.response.split('\n\n');
@@ -133,18 +133,34 @@ async function sendChat() {
 
 async function fetchPubMedTrending() {
     const pubmedGrid = document.getElementById('pubmedGrid');
-    const PROXY = "https://api.rss2json.com/v1/api.json?rss_url=";
-    const RSS_URL = "https://pubmed.ncbi.nlm.nih.gov/rss/search/1-y7vG_M3Z_Y8X_V9_S0gS/"; 
     try {
-        const res = await fetch(PROXY + encodeURIComponent(RSS_URL));
-        const data = await res.json();
-        pubmedGrid.innerHTML = data.items.slice(0, 3).map(item => `
+        const searchRes = await fetch("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=trending&retmode=json&retmax=3");
+        const searchData = await searchRes.json();
+        const ids = searchData.esearchresult.idlist.join(',');
+
+        if (!ids) throw new Error("No trending articles found");
+
+        const summaryRes = await fetch(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id=${ids}&retmode=json`);
+        const summaryData = await summaryRes.json();
+
+        const items = searchData.esearchresult.idlist.map(id => {
+            const article = summaryData.result[id];
+            return {
+                title: article.title,
+                link: `https://pubmed.ncbi.nlm.nih.gov/${id}/`
+            };
+        });
+
+        pubmedGrid.innerHTML = items.map(item => `
             <div class="p-6 bg-white rounded-3xl border border-[#dfe1e5] hover:border-[#0b57d0] transition-all flex flex-col h-full shadow-sm">
                 <span class="text-[#0b57d0] font-black text-[10px] uppercase mb-2">TRENDING RESEARCH</span>
                 <h4 class="font-bold text-sm line-clamp-2">${item.title}</h4>
                 <a href="${item.link}" target="_blank" class="text-[10px] font-black text-[#0b57d0] uppercase mt-auto pt-4 hover:underline">Read Abstract</a>
             </div>`).join('');
-    } catch (e) { console.warn("PubMed Sync Error."); }
+    } catch (e) {
+        console.warn("PubMed Sync Error.", e);
+        pubmedGrid.innerHTML = '<p class="text-sm text-gray-500 p-4">Could not load trending research.</p>';
+    }
 }
 async function fetchWHORSSAuth() {
     try {
@@ -160,9 +176,9 @@ async function fetchWHORSSAuth() {
                 <p class="text-[#444746] mt-4 text-sm line-clamp-3">${item.description.replace(/<[^>]*>?/gm, '')}</p>
             </div>`;
         };
-        render(0); 
+        render(0);
         setInterval(() => { i = (i + 1) % 5; render(i); }, 6000);
-    } catch(e) { console.warn("WHO RSS Load error."); }
+    } catch (e) { console.warn("WHO RSS Load error."); }
 }
 function setupApp(data) {
     user = data;
@@ -174,13 +190,121 @@ function setupApp(data) {
 }
 
 function logout() { localStorage.removeItem('agentic_session'); location.reload(); }
-function openPopup(id) { 
-    document.getElementById(id).classList.remove('hidden'); 
-    if(id === 'historyPopup') loadHistory();
+function openPopup(id) {
+    document.getElementById(id).classList.remove('hidden');
+    if (id === 'historyPopup') loadHistory();
+    if (id === 'profilePopup' && user) {
+        document.getElementById('pName').innerText = user.name || 'User';
+        document.getElementById('pBlood').value = user.profile?.blood_group || '';
+        document.getElementById('pAllergies').value = user.profile?.allergies || '';
+    }
 }
 function closePopup(id) { document.getElementById(id).classList.add('hidden'); }
 function toggleAuth(mode) {
     const isLogin = mode === 'login';
     document.getElementById('loginForm').classList.toggle('hidden', !isLogin);
     document.getElementById('signupForm').classList.toggle('hidden', isLogin);
+}
+
+async function handleUpdateProfile() {
+    if (!user) return;
+    const bg = document.getElementById('pBlood').value;
+    const alg = document.getElementById('pAllergies').value;
+
+    try {
+        const res = await fetch(`${API}/update-profile`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: user.id, blood_group: bg, allergies: alg })
+        });
+        if (res.ok) {
+            user.profile = { blood_group: bg, allergies: alg };
+            localStorage.setItem('agentic_session', JSON.stringify({
+                user: user,
+                timestamp: new Date().getTime()
+            }));
+            alert("Profile updated successfully in database!");
+            closePopup('profilePopup');
+        } else {
+            alert("Failed to update profile.");
+        }
+    } catch (e) {
+        console.error("Update profile error", e);
+        alert("An error occurred while updating the profile.");
+    }
+}
+
+async function loadHistory() {
+    if (!user) return;
+    const historyContent = document.getElementById('historyContent');
+    historyContent.innerHTML = '<div class="text-center py-10 text-gray-500">Loading history...</div>';
+
+    try {
+        const res = await fetch(`${API}/history/${user.id}`);
+        if (res.ok) {
+            const data = await res.json();
+            if (data.length === 0) {
+                historyContent.innerHTML = '<div class="text-center py-10 text-gray-500">No history found.</div>';
+                return;
+            }
+            historyContent.innerHTML = data.map(item => `
+                <div class="mb-4 p-4 bg-[#f8f9fa] rounded-2xl border border-[#dfe1e5]">
+                    <div class="text-[10px] text-[#0b57d0] font-black uppercase mb-2">${item.time}</div>
+                    <div class="text-sm font-medium text-[#1f1f1f]">${item.query}</div>
+                </div>
+            `).join('');
+        } else {
+            historyContent.innerHTML = '<div class="text-center py-10 text-red-500">Failed to load history.</div>';
+        }
+    } catch (e) {
+        console.error("History load error", e);
+        historyContent.innerHTML = '<div class="text-center py-10 text-red-500">Error loading history.</div>';
+    }
+}
+
+async function loadDoctors() {
+    openPopup('clinicsPopup');
+    const clinicsContent = document.getElementById('clinicsContent');
+    clinicsContent.innerHTML = '<div class="text-center py-10 text-gray-500">Getting your location...</div>';
+
+    if (!navigator.geolocation) {
+        clinicsContent.innerHTML = '<div class="text-center py-10 text-red-500">Geolocation is not supported by your browser.</div>';
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(async (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        clinicsContent.innerHTML = '<div class="text-center py-10 text-gray-500">Searching for nearby clinics...</div>';
+
+        try {
+            const res = await fetch(`${API}/doctors?lat=${lat}&lon=${lon}`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.length === 0) {
+                    clinicsContent.innerHTML = '<div class="text-center py-10 text-gray-500">No clinics found nearby.</div>';
+                    return;
+                }
+                clinicsContent.innerHTML = data.map(doc => `
+                    <div class="mb-4 p-5 bg-[#f8f9fa] rounded-2xl border border-[#dfe1e5] flex justify-between items-center">
+                        <div>
+                            <h4 class="font-bold text-[#1f1f1f] text-lg">${doc.name}</h4>
+                            <div class="text-sm text-[#444746] mt-1">${doc.specialty}</div>
+                            <div class="text-xs font-bold text-[#0b57d0] mt-2"><i class="fa-solid fa-location-dot mr-1"></i>${doc.dist.toFixed(2)} km away</div>
+                        </div>
+                        <a href="tel:${doc.phone}" class="bg-[#202124] text-white px-5 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-black transition-colors">
+                            <i class="fa-solid fa-phone"></i> Call
+                        </a>
+                    </div>
+                `).join('');
+            } else {
+                clinicsContent.innerHTML = '<div class="text-center py-10 text-red-500">Failed to reach clinic service.</div>';
+            }
+        } catch (e) {
+            console.error(e);
+            clinicsContent.innerHTML = '<div class="text-center py-10 text-red-500">Error loading clinics.</div>';
+        }
+    }, () => {
+        clinicsContent.innerHTML = '<div class="text-center py-10 text-red-500">Unable to retrieve your location.</div>';
+    });
 }
