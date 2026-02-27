@@ -25,7 +25,7 @@ if not GROQ_API_KEY:
     raise ValueError("GROQ_API_KEY not found in .env file")
 
 model = ChatGroq(
-    model_name="llama-3.3-70b-versatile",
+    model_name="moonshotai/kimi-k2-instruct-0905",
     groq_api_key=GROQ_API_KEY
 )
 
@@ -42,7 +42,7 @@ async def mcp_call(state: GraphState) -> GraphState:
         config = json.load(f)
   
     client = MCPClient.from_dict(config)
-    mcp_agent = MCPAgent(model, client=client)
+    mcp_agent = MCPAgent(model, client=client, max_steps=50)
     
     
     messages = state["messages"]
@@ -105,7 +105,7 @@ _loop = asyncio.new_event_loop()
 
 def get_response(query: str, user_id: str = "1") -> str:
     """Interface for app.py to get a response from the agent."""
-    config = {"configurable": {"thread_id": str(user_id)}}
+    config = {"configurable": {"thread_id": str(user_id)}, "recursion_limit": 50}
     input_state = {"messages": [HumanMessage(content=query)]}
     
     try:
