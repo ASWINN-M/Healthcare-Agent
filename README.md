@@ -98,5 +98,5 @@ A lightweight healthcare assistant built with FastAPI, MySQL, and a React‑styl
 **AgenticHealthAI** is designed as a proof‑of‑concept for combining rule‑based triage, conversational AI and public medical literature in a user‑friendly interface.
 
 *Last updated: February 27, 2026.*
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/VIDEO_ID/0.jpg)](https://www.youtube.com/watch?v=VIDEO_ID)
+[Vide Link]([https://www.youtube.com/watch?v=VIDEO_ID](https://youtu.be/4o7cJWZO-4w?si=hdGpHERsBffFPGDz))
 
